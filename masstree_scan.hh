@@ -76,6 +76,7 @@ class scanstackelt {
     }
 
     template <typename PX> friend class basic_table;
+    template <typename PX, typename HX> friend class scan_iterator;
 };
 
 struct forward_scan_helper {
@@ -303,6 +304,96 @@ int scanstackelt<P>::find_next(H &helper, key_type &ka, leafvalue_type &entry)
     perm_ = n_->permutation();
     ki_ = helper.lower(ka, this);
     return scan_find_next;
+}
+
+// I think this is called stack-ripping?
+template <typename P, typename H>
+struct scan_iterator {
+    typedef typename P::ikey_type ikey_type;
+    typedef typename basic_table<P>::node_type node_type;
+    typedef typename basic_table<P>::threadinfo threadinfo;
+    typedef typename node_type::key_type key_type;
+    typedef typename node_type::leaf_type::leafvalue_type leafvalue_type;
+    typedef scanstackelt<P> stack_type;
+
+    scan_iterator(node_type *root, Str firstkey, threadinfo &ti) {
+	memcpy(keybuf.s, firstkey.s, firstkey.len);
+	key = key_type(keybuf.s, firstkey.len);
+	stack.root_ = root;
+	entry = leafvalue_type::make_empty();
+
+	// go down to the deepest layer
+	while (1) {
+	    state = stack.find_initial(helper, key, true, entry, ti);
+	    if (state != stack_type::scan_down) break;
+	    key.shift();
+	}
+	StateChange(ti);
+    }
+
+    void next(threadinfo &ti) {
+	stack.ki_ = helper.next(stack.ki_);
+	state = stack.find_next(helper, key, entry);
+	StateChange(ti);
+    }
+
+    key_type &current_key() { return key; }
+    const key_type &current_key() const { return key; }
+    leafvalue_type &current_value() { return entry; }
+    const leafvalue_type &current_value() const { return entry; }
+
+private:
+    void StateChange(threadinfo &ti) {
+	while (state != stack_type::scan_emit) {
+	    switch (state) {
+	    case stack_type::scan_find_next:
+		find_next:
+		state = stack.find_next(helper, key, entry);
+		break;
+
+	    case stack_type::scan_up:
+		do {
+		    if (stack.node_stack_.empty())
+			return;
+		    stack.n_ = static_cast<leaf<P>*>(stack.node_stack_.back());
+		    stack.node_stack_.pop_back();
+		    stack.root_ = stack.node_stack_.back();
+		    stack.node_stack_.pop_back();
+		    key.unshift();
+		} while (unlikely(key.empty()));
+		stack.v_ = helper.stable(stack.n_, key);
+		stack.perm_ = stack.n_->permutation();
+		stack.ki_ = helper.lower(key, &stack);
+		goto find_next;
+
+	    case stack_type::scan_down:
+		helper.shift_clear(key);
+		goto retry;
+
+	    case stack_type::scan_retry:
+		retry:
+		state = stack.find_retry(helper, key, ti);
+		break;
+	    }
+	}
+    }
+
+    union {
+        ikey_type x[(MASSTREE_MAXKEYLEN + sizeof(ikey_type) - 1)/sizeof(ikey_type)];
+        char s[MASSTREE_MAXKEYLEN];
+    } keybuf;
+
+    H helper;
+    leafvalue_type entry;
+    int state;
+    key_type key;
+    stack_type stack;
+};
+
+template <typename P>
+scan_iterator<P, forward_scan_helper> basic_table<P>::find_iterator(Str firstkey, threadinfo &ti) const
+{
+    return scan_iterator<P, forward_scan_helper>(root_, firstkey, ti);
 }
 
 template <typename P> template <typename H, typename F>
