@@ -81,8 +81,7 @@ class basic_table {
     template <typename F>
     int rscan(Str firstkey, bool matchfirst, F& scanner, threadinfo& ti) const;
 
-    typedef typename scan_iterator<P, forward_scan_helper> forward_scan_iterator;
-
+    typedef scan_iterator<P, forward_scan_helper> forward_scan_iterator;
     forward_scan_iterator find_iterator(Str firstkey, threadinfo &ti) const;
 
     inline void print(FILE* f = 0, int indent = 0) const;
