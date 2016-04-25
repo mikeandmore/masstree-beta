@@ -340,7 +340,7 @@ struct scan_iterator {
 	StateChange(ti);
     }
 
-    bool is_valid() { return !terminated; }
+    bool is_valid() const { return !terminated; }
 
     key_type &current_key() { return key; }
     const key_type &current_key() const { return key; }
