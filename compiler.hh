@@ -25,8 +25,12 @@
 
 #define arraysize(a) (sizeof(a) / sizeof((a)[0]))
 
+#ifndef likely
 #define likely(x) __builtin_expect(!!(x), 1)
+#endif
+#ifndef unlikely
 #define unlikely(x) __builtin_expect(!!(x), 0)
+#endif
 
 #if !HAVE_CXX_STATIC_ASSERT
 #define static_assert(x, msg) switch (x) case 0: case !!(x):
