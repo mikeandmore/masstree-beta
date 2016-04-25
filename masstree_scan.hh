@@ -314,6 +314,8 @@ struct scan_iterator {
     typedef typename basic_table<P>::threadinfo threadinfo;
     typedef typename node_type::key_type key_type;
     typedef typename node_type::leaf_type::leafvalue_type leafvalue_type;
+    typedef typename basic_table<P>::value_type value_type;
+
     typedef scanstackelt<P> stack_type;
 
     scan_iterator(node_type *root, Str firstkey, threadinfo &ti) {
@@ -321,6 +323,7 @@ struct scan_iterator {
 	key = key_type(keybuf.s, firstkey.len);
 	stack.root_ = root;
 	entry = leafvalue_type::make_empty();
+	terminated = false;
 
 	// go down to the deepest layer
 	while (1) {
@@ -337,10 +340,12 @@ struct scan_iterator {
 	StateChange(ti);
     }
 
+    bool is_valid() { return !terminated; }
+
     key_type &current_key() { return key; }
     const key_type &current_key() const { return key; }
-    leafvalue_type &current_value() { return entry; }
-    const leafvalue_type &current_value() const { return entry; }
+    value_type &current_value() { return entry.value(); }
+    const value_type &current_value() const { return entry.value(); }
 
 private:
     void StateChange(threadinfo &ti) {
@@ -353,8 +358,10 @@ private:
 
 	    case stack_type::scan_up:
 		do {
-		    if (stack.node_stack_.empty())
+		    if (stack.node_stack_.empty()) {
+			terminated = true;
 			return;
+		    }
 		    stack.n_ = static_cast<leaf<P>*>(stack.node_stack_.back());
 		    stack.node_stack_.pop_back();
 		    stack.root_ = stack.node_stack_.back();
@@ -382,6 +389,8 @@ private:
         ikey_type x[(MASSTREE_MAXKEYLEN + sizeof(ikey_type) - 1)/sizeof(ikey_type)];
         char s[MASSTREE_MAXKEYLEN];
     } keybuf;
+
+    bool terminated;
 
     H helper;
     leafvalue_type entry;
