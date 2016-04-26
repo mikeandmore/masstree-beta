@@ -414,7 +414,7 @@ public:
 	p->next(ti);
     }
 
-    void is_valid() const {
+    bool is_valid() const {
 	return !p->terminated;
     }
 
