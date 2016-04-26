@@ -99,5 +99,7 @@ write_compiler_detection_header(
         COMPILERS GNU
         FEATURES cxx_alias_templates cxx_static_assert cxx_constexpr
 )
+        
+add_library(masstree SHARED query_masstree.cc kvthread.cc str.cc string.cc straccum.cc memdebug.cc json.cc compiler.cc)
 
-add_library(masstree SHARED query_masstree.cc kvthread.cc str.cc string.cc straccum.cc memdebug.cc)
+install(TARGETS masstree LIBRARY DESTINATION lib)

@@ -78,9 +78,6 @@
 /* Define if WORDS_BIGENDIAN has been set. */
 #undef WORDS_BIGENDIAN_SET
 
-#if !FORCE_ENABLE_ASSERTIONS && !ENABLE_ASSERTIONS
-# define NDEBUG 1
-#endif
 
 /** @brief Assert macro that always runs. */
 extern void fail_always_assert(const char* file, int line, const char* assertion, const char* message = 0) __attribute__((noreturn));
