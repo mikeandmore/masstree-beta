@@ -100,4 +100,4 @@ write_compiler_detection_header(
         FEATURES cxx_alias_templates cxx_static_assert cxx_constexpr
 )
 
-add_library(masstree STATIC query_masstree.cc kvthread.cc str.cc string.cc straccum.cc memdebug.cc)
+add_library(masstree SHARED query_masstree.cc kvthread.cc str.cc string.cc straccum.cc memdebug.cc)
