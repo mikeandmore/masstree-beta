@@ -32,14 +32,6 @@
 #define unlikely(x) __builtin_expect(!!(x), 0)
 #endif
 
-#if !HAVE_CXX_STATIC_ASSERT
-#define static_assert(x, msg) switch (x) case 0: case !!(x):
-#endif
-
-#if !HAVE_CXX_CONSTEXPR
-#define constexpr const
-#endif
-
 #if HAVE_OFF_T_IS_LONG_LONG
 #define PRIdOFF_T "lld"
 #else

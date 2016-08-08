@@ -208,21 +208,21 @@ void threadinfo::refill_pool(int nl) {
         superpage_size = read_superpage_size();
     if (superpage_size != (size_t) -1) {
         pool_size = superpage_size;
-# if MADV_HUGEPAGE
+# if MAP_HUGETLB
+        pool = mmap(0, pool_size, PROT_READ | PROT_WRITE,
+                    MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, -1, 0);
+        if (pool == MAP_FAILED) {
+            perror("mmap superpage");
+            pool = 0;
+            superpage_size = (size_t) -1;
+        }
+# elif MADV_HUGEPAGE
         if ((r = posix_memalign(&pool, pool_size, pool_size)) != 0) {
             fprintf(stderr, "posix_memalign superpage: %s\n", strerror(r));
             pool = 0;
             superpage_size = (size_t) -1;
         } else if (madvise(pool, pool_size, MADV_HUGEPAGE) != 0) {
             perror("madvise superpage");
-            superpage_size = (size_t) -1;
-        }
-# elif MAP_HUGETLB
-        pool = mmap(0, pool_size, PROT_READ | PROT_WRITE,
-                    MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
-        if (pool == MAP_FAILED) {
-            perror("mmap superpage");
-            pool = 0;
             superpage_size = (size_t) -1;
         }
 # else

@@ -6,6 +6,9 @@ add_definitions(-include config.h)
 
 set(CMAKE_REQUIRED_DEFINITIONS -std=c++11 -pthread)
 
+set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -g -flto -fno-omit-frame-pointer -DNDEBUG")
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-flto -fwhole-program -g -fno-omit-frame-pointer")
+
 INCLUDE(CheckIncludeFiles)
 INCLUDE(CheckIncludeFileCXX)
 INCLUDE(CheckFunctionExists)
@@ -96,7 +99,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake.in ${CMAKE_CURRENT_BIN
 write_compiler_detection_header(
         FILE "${CMAKE_CURRENT_BINARY_DIR}/compiler_features.h"
         PREFIX CXX
-        COMPILERS GNU
+        COMPILERS GNU Clang
         FEATURES cxx_alias_templates cxx_static_assert cxx_constexpr
 )
         
