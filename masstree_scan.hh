@@ -76,7 +76,7 @@ class scanstackelt {
     }
 
     template <typename PX> friend class basic_table;
-    template <typename PX, typename HX> friend class scan_iterator_impl;
+    template <typename PX, typename HX> friend struct scan_iterator_impl;
 };
 
 struct forward_scan_helper {
@@ -390,45 +390,6 @@ struct scan_iterator_impl {
     key_type key;
     stack_type stack;
 };
-
-template <typename P, typename H>
-class scan_iterator {
-    scan_iterator_impl<P, H>* p;
-public:
-
-    typedef typename basic_table<P>::threadinfo threadinfo;
-    typedef typename basic_table<P>::value_type value_type;
-
-    scan_iterator(scan_iterator_impl<P, H>* impl) : p(impl) {}
-    scan_iterator(scan_iterator<P, H> &&rhs) {
-	p = rhs.p;
-	rhs.p = nullptr;
-    }
-    scan_iterator(const scan_iterator<P, H> &rhs) = delete;
-
-    ~scan_iterator() {
-	delete p;
-    }
-
-    void next(threadinfo &ti) {
-	p->next(ti);
-    }
-
-    bool is_valid() const {
-	return !p->terminated;
-    }
-
-    Str key() { return p->key.full_string(); }
-    Str key() const { return p->key.full_string(); }
-    value_type &value() { return p->entry.value(); }
-    const value_type &value() const { return p->entry.value(); }
-};
-
-template <typename P>
-scan_iterator<P, forward_scan_helper> basic_table<P>::find_iterator(Str firstkey, threadinfo &ti) const
-{
-    return scan_iterator<P, forward_scan_helper>(new scan_iterator_impl<P, forward_scan_helper>(root_, firstkey, ti));
-}
 
 template <typename P> template <typename H, typename F>
 int basic_table<P>::scan(H helper,
