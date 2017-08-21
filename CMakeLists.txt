@@ -5,11 +5,8 @@ set(CMAKE_CXX_STANDARD 11)
 add_definitions(-include config.h)
 
 set(CMAKE_REQUIRED_DEFINITIONS -pthread)
-
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
-
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -flto -fno-omit-frame-pointer -DNDEBUG")
-set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-flto -fwhole-program -g -fno-omit-frame-pointer")
+set(CMAKE_CXX_FLAGS "-std=c++11 -g -DNDEBUG -O3 -flto")
+set(CMAKE_EXE_LINKER_FLAGS "-flto -g")
 
 INCLUDE(CheckIncludeFiles)
 INCLUDE(CheckIncludeFileCXX)
